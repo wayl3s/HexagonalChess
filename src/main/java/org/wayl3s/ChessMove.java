@@ -4,12 +4,12 @@ import java.awt.Point;
 import java.util.ArrayList;
 
 public class ChessMove {
-    public static ArrayList<Point> getLegalMoves(Point pos, ChessPieces piece, ChessColor color, ArrayList<ChessPiece[]> grid) {
+    public static ArrayList<Point> getLegalMoves(Point pos, ChessPiece chessPiece, ArrayList<ChessPiece[]> grid) {
         ArrayList<Point> legalMoves = new ArrayList<>();
         Point temp;
-        switch (piece) {
+        switch (chessPiece.piece) {
             case PAWN:
-                if (color == ChessColor.WHITE) {
+                if (chessPiece.color == ChessColor.WHITE) {
                     temp = moveForward(pos);
                     if (!isInGrid(temp)) {
                         return legalMoves;
@@ -23,18 +23,18 @@ public class ChessMove {
                     }
                     temp = moveTopLeft(pos);
                     if (isInGrid(temp)) {
-                        if (grid.get(temp.x)[temp.y] != null && grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y] != null && grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                     }
                     temp = moveTopRight(pos);
                     if (isInGrid(temp)) {
-                        if (grid.get(temp.x)[temp.y] != null && grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y] != null && grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                     }
                 }
-                if (color == ChessColor.BLACK) {
+                if (chessPiece.color == ChessColor.BLACK) {
                     temp = moveBackward(pos);
                     if (!isInGrid(temp)) {
                         return legalMoves;
@@ -48,13 +48,13 @@ public class ChessMove {
                     }
                     temp = moveBottomLeft(pos);
                     if (isInGrid(temp)) {
-                        if (grid.get(temp.x)[temp.y] != null && grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y] != null && grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                     }
                     temp = moveBottomRight(pos);
                     if (isInGrid(temp)) {
-                        if (grid.get(temp.x)[temp.y] != null && grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y] != null && grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                     }
@@ -64,7 +64,7 @@ public class ChessMove {
                 temp = moveForward(pos);
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;
@@ -76,7 +76,7 @@ public class ChessMove {
                 temp = moveBackward(pos);
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;
@@ -88,7 +88,7 @@ public class ChessMove {
                 temp = moveTopRight(pos);
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;
@@ -100,7 +100,7 @@ public class ChessMove {
                 temp = moveTopLeft(pos);
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;
@@ -112,7 +112,7 @@ public class ChessMove {
                 temp = moveBottomRight(pos);
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;
@@ -124,7 +124,7 @@ public class ChessMove {
                 temp = moveBottomLeft(pos);
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;
@@ -138,7 +138,7 @@ public class ChessMove {
                 temp = moveTopRight(moveForward(pos));
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;
@@ -150,7 +150,7 @@ public class ChessMove {
                 temp = moveTopLeft(moveForward(pos));
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;
@@ -162,7 +162,7 @@ public class ChessMove {
                 temp = moveBottomRight(moveBackward(pos));
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;
@@ -174,7 +174,7 @@ public class ChessMove {
                 temp = moveBottomLeft(moveBackward(pos));
                 while (isInGrid(temp)) {
                     if (grid.get(temp.x)[temp.y] != null) {
-                        if (grid.get(temp.x)[temp.y].color != color) {
+                        if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
                         }
                         break;

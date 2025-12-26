@@ -245,7 +245,7 @@ public class Board extends JComponent implements ActionListener, MouseListener {
                             selectedPiece = new Point(i, j);
                             pressed = true;
                             isSelected = true;
-                            legalMoves = ChessMove.getLegalMoves(selectedPiece, grid.get(i)[j].piece, grid.get(i)[j].color, grid);
+                            legalMoves = ChessMove.getLegalMoves(selectedPiece, grid.get(i)[j], grid);
                             // legalPoints = ChessMove.getLegalMoves(selectedPiece, ChessPieces.ROOK, ChessColor.WHITE, grid);
                         }
                     }
