@@ -19,7 +19,6 @@ public class Board extends JComponent implements ActionListener, MouseListener {
     private int prefHeight = 400;
     private final double SCALE = 0.80;
     private double boxWidth = SCALE * Math.min(prefWidth, prefHeight);
-    private final int TIMER_DELAY;
     private Timer timer;
 
     // GAME STATE
@@ -42,9 +41,7 @@ public class Board extends JComponent implements ActionListener, MouseListener {
         new Point(4, 2), new Point(4, 1), new Point(4, 0)
     }));
     
-    public Board(final int timerDelay) {
-        this.TIMER_DELAY = timerDelay;
-
+    public Board(int timerDelay) {
         timer = new Timer(timerDelay, this);
         timer.start();
 
