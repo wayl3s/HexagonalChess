@@ -3,32 +3,54 @@ package org.wayl3s;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JComponent;
 import javax.swing.Timer;
 
-public class Board extends JComponent implements ActionListener {
-    private final int TIMER_DELAY;
-    private Timer timer;
-
+public class Board extends JComponent implements ActionListener, MouseListener {
+    // WINDOW PARAMETERS
     private int minWidth = 200;
     private int minHeight = 200;
     private int prefWidth = 400;
     private int prefHeight = 400;
     private final double SCALE = 0.80;
+    private double boxWidth = SCALE * Math.min(prefWidth, prefHeight);
+    private final int TIMER_DELAY;
+    private Timer timer;
 
+    // GAME STATE
     private ArrayList<ChessPiece[]> grid = new ArrayList<ChessPiece[]>();
     private ChessColor turn = ChessColor.WHITE;
+    private Point selectedPiece = null;
+    private boolean isSelected = false;
+    private ArrayList<Point> legalMoves = new ArrayList<>();
 
-    private int selectedPieceX = 5;
-    private int selectedPieceY = 5;
+    // FINAL VARIABLES
+    public static final int[] sizes = {6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6};
+    public static final ArrayList<Point> whitePawnStartPositions = new ArrayList<>(Arrays.asList(new Point[]{
+        new Point(10, 1), new Point(9, 2), new Point(8, 3),
+        new Point(7, 4), new Point(6, 5), new Point(6, 6),
+        new Point(6, 7), new Point(6, 8), new Point(6, 9)
+    }));
+    public static final ArrayList<Point> blackPawnStartPositions = new ArrayList<>(Arrays.asList(new Point[]{
+        new Point(0, 4), new Point(1, 4), new Point(2, 4),
+        new Point(3, 4), new Point(4, 4), new Point(4, 3),
+        new Point(4, 2), new Point(4, 1), new Point(4, 0)
+    }));
     
     public Board(final int timerDelay) {
         this.TIMER_DELAY = timerDelay;
 
         timer = new Timer(timerDelay, this);
         timer.start();
+
+        addMouseListener(this);
+
+        this.start();
     }
 
     @Override
@@ -52,53 +74,47 @@ public class Board extends JComponent implements ActionListener {
         
         grid.clear();
 
-        int temp = 6;
-        for (int i = 0; i < 12; i++) {
-            grid.add(new ChessPiece[temp]);
-            if (i < 6) {
-                    temp++;
-            } else {
-                    temp--;
-            }
+        for (int i = 0; i < 11; i++) {
+            grid.add(new ChessPiece[sizes[i]]);
         }
 
-        grid.get(0)[0] = new ChessPiece(Pieces.BISHOP, ChessColor.BLACK);
-        grid.get(1)[1] = new ChessPiece(Pieces.BISHOP, ChessColor.BLACK);
-        grid.get(2)[2] = new ChessPiece(Pieces.BISHOP, ChessColor.BLACK);
-        grid.get(1)[0] = new ChessPiece(Pieces.QUEEN, ChessColor.BLACK);
-        grid.get(0)[1] = new ChessPiece(Pieces.KING, ChessColor.BLACK);
-        grid.get(0)[2] = new ChessPiece(Pieces.KNIGHT, ChessColor.BLACK);
-        grid.get(2)[0] = new ChessPiece(Pieces.KNIGHT, ChessColor.BLACK);
-        grid.get(0)[3] = new ChessPiece(Pieces.ROOK, ChessColor.BLACK);
-        grid.get(3)[0] = new ChessPiece(Pieces.ROOK, ChessColor.BLACK);
-        grid.get(0)[4] = new ChessPiece(Pieces.PAWN, ChessColor.BLACK);
-        grid.get(1)[4] = new ChessPiece(Pieces.PAWN, ChessColor.BLACK);
-        grid.get(2)[4] = new ChessPiece(Pieces.PAWN, ChessColor.BLACK);
-        grid.get(3)[4] = new ChessPiece(Pieces.PAWN, ChessColor.BLACK);
-        grid.get(4)[4] = new ChessPiece(Pieces.PAWN, ChessColor.BLACK);
-        grid.get(4)[3] = new ChessPiece(Pieces.PAWN, ChessColor.BLACK);
-        grid.get(4)[2] = new ChessPiece(Pieces.PAWN, ChessColor.BLACK);
-        grid.get(4)[1] = new ChessPiece(Pieces.PAWN, ChessColor.BLACK);
-        grid.get(4)[0] = new ChessPiece(Pieces.PAWN, ChessColor.BLACK);
+        grid.get(0)[0] = new ChessPiece(ChessPieces.BISHOP, ChessColor.BLACK);
+        grid.get(1)[1] = new ChessPiece(ChessPieces.BISHOP, ChessColor.BLACK);
+        grid.get(2)[2] = new ChessPiece(ChessPieces.BISHOP, ChessColor.BLACK);
+        grid.get(1)[0] = new ChessPiece(ChessPieces.QUEEN, ChessColor.BLACK);
+        grid.get(0)[1] = new ChessPiece(ChessPieces.KING, ChessColor.BLACK);
+        grid.get(0)[2] = new ChessPiece(ChessPieces.KNIGHT, ChessColor.BLACK);
+        grid.get(2)[0] = new ChessPiece(ChessPieces.KNIGHT, ChessColor.BLACK);
+        grid.get(0)[3] = new ChessPiece(ChessPieces.ROOK, ChessColor.BLACK);
+        grid.get(3)[0] = new ChessPiece(ChessPieces.ROOK, ChessColor.BLACK);
+        grid.get(0)[4] = new ChessPiece(ChessPieces.PAWN, ChessColor.BLACK);
+        grid.get(1)[4] = new ChessPiece(ChessPieces.PAWN, ChessColor.BLACK);
+        grid.get(2)[4] = new ChessPiece(ChessPieces.PAWN, ChessColor.BLACK);
+        grid.get(3)[4] = new ChessPiece(ChessPieces.PAWN, ChessColor.BLACK);
+        grid.get(4)[4] = new ChessPiece(ChessPieces.PAWN, ChessColor.BLACK);
+        grid.get(4)[3] = new ChessPiece(ChessPieces.PAWN, ChessColor.BLACK);
+        grid.get(4)[2] = new ChessPiece(ChessPieces.PAWN, ChessColor.BLACK);
+        grid.get(4)[1] = new ChessPiece(ChessPieces.PAWN, ChessColor.BLACK);
+        grid.get(4)[0] = new ChessPiece(ChessPieces.PAWN, ChessColor.BLACK);
 
-        grid.get(11)[5] = new ChessPiece(Pieces.BISHOP, ChessColor.WHITE);
-        grid.get(10)[6] = new ChessPiece(Pieces.BISHOP, ChessColor.WHITE);
-        grid.get(9)[7] = new ChessPiece(Pieces.BISHOP, ChessColor.WHITE);
-        grid.get(11)[4] = new ChessPiece(Pieces.QUEEN, ChessColor.WHITE);
-        grid.get(10)[6] = new ChessPiece(Pieces.KING, ChessColor.WHITE);
-        grid.get(11)[3] = new ChessPiece(Pieces.KNIGHT, ChessColor.WHITE);
-        grid.get(9)[7] = new ChessPiece(Pieces.KNIGHT, ChessColor.WHITE);
-        grid.get(11)[2] = new ChessPiece(Pieces.ROOK, ChessColor.WHITE);
-        grid.get(8)[8] = new ChessPiece(Pieces.ROOK, ChessColor.WHITE);
-        grid.get(11)[1] = new ChessPiece(Pieces.PAWN, ChessColor.WHITE);
-        grid.get(10)[2] = new ChessPiece(Pieces.PAWN, ChessColor.WHITE);
-        grid.get(9)[3] = new ChessPiece(Pieces.PAWN, ChessColor.WHITE);
-        grid.get(8)[4] = new ChessPiece(Pieces.PAWN, ChessColor.WHITE);
-        grid.get(7)[5] = new ChessPiece(Pieces.PAWN, ChessColor.WHITE);
-        grid.get(7)[6] = new ChessPiece(Pieces.PAWN, ChessColor.WHITE);
-        grid.get(7)[7] = new ChessPiece(Pieces.PAWN, ChessColor.WHITE);
-        grid.get(7)[8] = new ChessPiece(Pieces.PAWN, ChessColor.WHITE);
-        grid.get(7)[9] = new ChessPiece(Pieces.PAWN, ChessColor.WHITE);
+        grid.get(10)[5] = new ChessPiece(ChessPieces.BISHOP, ChessColor.WHITE);
+        grid.get(9)[5] = new ChessPiece(ChessPieces.BISHOP, ChessColor.WHITE);
+        grid.get(8)[5] = new ChessPiece(ChessPieces.BISHOP, ChessColor.WHITE);
+        grid.get(10)[4] = new ChessPiece(ChessPieces.QUEEN, ChessColor.WHITE);
+        grid.get(9)[6] = new ChessPiece(ChessPieces.KING, ChessColor.WHITE);
+        grid.get(10)[3] = new ChessPiece(ChessPieces.KNIGHT, ChessColor.WHITE);
+        grid.get(8)[7] = new ChessPiece(ChessPieces.KNIGHT, ChessColor.WHITE);
+        grid.get(10)[2] = new ChessPiece(ChessPieces.ROOK, ChessColor.WHITE);
+        grid.get(7)[8] = new ChessPiece(ChessPieces.ROOK, ChessColor.WHITE);
+        grid.get(10)[1] = new ChessPiece(ChessPieces.PAWN, ChessColor.WHITE);
+        grid.get(9)[2] = new ChessPiece(ChessPieces.PAWN, ChessColor.WHITE);
+        grid.get(8)[3] = new ChessPiece(ChessPieces.PAWN, ChessColor.WHITE);
+        grid.get(7)[4] = new ChessPiece(ChessPieces.PAWN, ChessColor.WHITE);
+        grid.get(6)[5] = new ChessPiece(ChessPieces.PAWN, ChessColor.WHITE);
+        grid.get(6)[6] = new ChessPiece(ChessPieces.PAWN, ChessColor.WHITE);
+        grid.get(6)[7] = new ChessPiece(ChessPieces.PAWN, ChessColor.WHITE);
+        grid.get(6)[8] = new ChessPiece(ChessPieces.PAWN, ChessColor.WHITE);
+        grid.get(6)[9] = new ChessPiece(ChessPieces.PAWN, ChessColor.WHITE);
     }
 
     @Override
@@ -110,23 +126,24 @@ public class Board extends JComponent implements ActionListener {
 
         int height = getHeight();
         int width = getWidth();
-        double boxWidth = SCALE * Math.min(height, width);
+        boxWidth = SCALE * Math.min(height, width);
 
         Polygon polygon;
-        int temp = 6;
         for (int i = 0; i < 11; i++) {
-            for (int j = 0; j < temp; j++) {
+            for (int j = 0; j < sizes[i]; j++) {
                 double polygonX = (double) ((double) width / 2 
-                - boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i + i / 6 - j) / 5
-                + boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i - 4) / 5 * (int) (i / 6));
+                    - boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i + i / 6 - j) / 5
+                    + boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i - 4) / 5 * (int) (i / 6)
+                );
                 double polygonY = (double) ((double) height / 2
-                - Math.min(width, height) / 2
-                + ((1 - SCALE) * Math.min(height, width) / 2) 
-                + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i + i / 6 + j) / 5
-                + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i - 6) / 5 * (int) (i / 6));
+                    - Math.min(width, height) / 2
+                    + ((1 - SCALE) * Math.min(height, width) / 2) 
+                    + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i + i / 6 + j) / 5
+                    + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i - 6) / 5 * (int) (i / 6)
+                );
                 polygon = buildCellPolygon(boxWidth / (10 * Math.sin(Math.PI * 60 / 180)), polygonX, polygonY);
 
-                if (i == selectedPieceX && j == selectedPieceY) {
+                if ((isSelected && i == selectedPiece.x && j == selectedPiece.y) || legalMoves.contains(new Point(i, j))) {
                     g.setColor(new Color(230, 250, 0));
                     g.fillPolygon(polygon);
                 } else if ((i + i/6 * (i + 1) + j) % 3 == 0) {
@@ -140,13 +157,22 @@ public class Board extends JComponent implements ActionListener {
                     g.fillPolygon(polygon);
                 }
 
+                // if (legalPoints.contains(new Point(i, j))) {
+                //     g.setColor(Color.BLACK);
+                //     g.fillOval((int) (polygonX - boxWidth/120), (int) (polygonY - boxWidth/120), (int) boxWidth/60, (int) boxWidth/60);
+                // }
+                
+                if (grid.get(i)[j] != null) {
+                    if (grid.get(i)[j].color == ChessColor.WHITE){
+                        g.setColor(Color.WHITE);
+                    } else {
+                        g.setColor(Color.BLACK);
+                    }
+                    g.fillRect((int) polygonX, (int) polygonY, 5, 5);
+                }
+
                 g.setColor(Color.BLACK);
                 g.drawPolygon(polygon);
-            }
-            if (i < 5) {
-                    temp++;
-            } else {
-                    temp--;
             }
         }
     }
@@ -175,17 +201,63 @@ public class Board extends JComponent implements ActionListener {
             repaint();
         }
     }
+
+    public void getSelectedPiece(int x, int y) {
+
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {}
+
+    @Override
+    public void mouseEntered(MouseEvent e) {}
+
+    @Override
+    public void mouseExited(MouseEvent e) {}
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            int height = getHeight();
+            int width = getWidth();
+            boolean pressed = false;
+            boxWidth = SCALE * Math.min(height, width);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < sizes[i]; j++) {
+                    double distance = Point.distance(
+                        e.getX(),
+                        e.getY(),
+                        (double) ((double) width / 2 
+                        - boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i + i / 6 - j) / 5
+                        + boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i - 4) / 5 * (int) (i / 6)),
+                        (double) ((double) height / 2
+                        - Math.min(width, height) / 2
+                        + ((1 - SCALE) * Math.min(height, width) / 2) 
+                        + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i + i / 6 + j) / 5
+                        + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i - 6) / 5 * (int) (i / 6))
+                    );
+                    if (distance < boxWidth / 20) {
+                        if (legalMoves.contains(new Point(i, j))) {
+                            grid.get(i)[j] = grid.get(selectedPiece.x)[selectedPiece.y];
+                            grid.get(selectedPiece.x)[selectedPiece.y] = null;
+                            turn = turn == ChessColor.WHITE ? ChessColor.BLACK : ChessColor.WHITE;
+                        } else if (grid.get(i)[j] != null && grid.get(i)[j].color == turn) {
+                            selectedPiece = new Point(i, j);
+                            pressed = true;
+                            isSelected = true;
+                            legalMoves = ChessMove.getLegalMoves(selectedPiece, grid.get(i)[j].piece, grid.get(i)[j].color, grid);
+                            // legalPoints = ChessMove.getLegalMoves(selectedPiece, ChessPieces.ROOK, ChessColor.WHITE, grid);
+                        }
+                    }
+                }
+            }
+            if (pressed == false) {
+                legalMoves.clear();
+                isSelected = false;
+            }
+        }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {}
 }
-
-
-//      |b|_|_|_|_|_|
-//     |_|_|_|_|_|_|_|
-//    |_|_|_|_|_|_|_|_|
-//   |_|_|_|_|_|_|_|_|_|
-//  |_|_|_|_|_|_|_|_|_|_|
-// |_|_|_|_|_|_|_|_|_|_|_|
-//  |_|_|_|_|_|_|_|_|_|_|
-//   |_|_|_|_|_|_|_|_|_|
-//    |_|_|_|_|_|_|_|_|
-//     |_|_|_|_|_|_|_|
-//      |_|_|_|_|_|w|

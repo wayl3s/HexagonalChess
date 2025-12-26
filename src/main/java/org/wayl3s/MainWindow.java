@@ -8,11 +8,11 @@ public class MainWindow extends JFrame {
 
     public MainWindow() throws HeadlessException {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setPreferredSize(new Dimension(600, 600));
         // this.setResizable(false);
         this.setLayout(new GridBagLayout());
 
-        board = new Board(16);
-        board.setPreferredSize(new Dimension(0, 0));
+        board = new Board(100);
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
