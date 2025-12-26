@@ -8,6 +8,4 @@ public class ChessPiece {
         this.piece = piece;
         this.color = color;
     }
-
-    
 }
