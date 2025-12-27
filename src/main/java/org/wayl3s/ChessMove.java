@@ -1,58 +1,35 @@
 package org.wayl3s;
 
-import java.awt.Graphics2D;
 import java.awt.Point;
 import java.util.ArrayList;
 
 public class ChessMove {
-    private static boolean isInGrid(Point pos) {
-        if (pos.x < 11 && pos.x >= 0 && pos.y >= 0) {
-            return pos.y < Board.sizes[pos.x];
-        }
-        return false;
-    }
-
-    private static Point moveForward(Point pos) {
-        return new Point(pos.x - 1, pos.y - (1 - pos.x/6));
-    }
-
-    private static Point moveBackward(Point pos) {
-        return new Point(pos.x + 1, pos.y + (1 - pos.x/5));
-    }
-
-    private static Point moveTopRight(Point pos) {
-        return new Point(pos.x - 1, pos.y + pos.x/6);
-    }
-
-    private static Point moveTopLeft(Point pos) {
-        return new Point(pos.x, pos.y - 1);
-    }
-
-    private static Point moveBottomRight(Point pos) {
-        return new Point(pos.x, pos.y + 1);
-    }
-
-    private static Point moveBottomLeft(Point pos) {
+    
+    public static Point moveBottomLeft(Point pos) {
         return new Point(pos.x + 1, pos.y - pos.x/5);
     }
 
-    private static void addLegal(ArrayList<Point> legalMoves, ChessPiece chessPiece, Point temp, ArrayList<ChessPiece[]> grid) {
-        if (isInGrid(temp)) {
-            addAttacking(legalMoves, chessPiece, temp, grid);
-        }
+    public static Point moveForward(Point pos) {
+        return new Point(pos.x - 1, pos.y - (1 - pos.x/6));
     }
 
-    private static void addAttacking(ArrayList<Point> legalMoves, ChessPiece chessPiece, Point temp, ArrayList<ChessPiece[]> grid) {
-        if (grid.get(temp.x)[temp.y] != null) {
-            if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
-                legalMoves.add(temp);
-            }
-        } else {
-            legalMoves.add(temp);
-        }
+    public static Point moveBackward(Point pos) {
+        return new Point(pos.x + 1, pos.y + (1 - pos.x/5));
     }
 
-    public static ArrayList<Point> getLegalMoves(Point pos, ChessPiece chessPiece, ArrayList<ChessPiece[]> grid) {
+    public static Point moveTopRight(Point pos) {
+        return new Point(pos.x - 1, pos.y + pos.x/6);
+    }
+
+    public static Point moveTopLeft(Point pos) {
+        return new Point(pos.x, pos.y - 1);
+    }
+
+    public static Point moveBottomRight(Point pos) {
+        return new Point(pos.x, pos.y + 1);
+    }
+    
+    public static ArrayList<Point> getLegalMoves(Point pos, ChessPiece chessPiece, ArrayList<ChessPiece[]> grid, Point enPassantPawn) {
         ArrayList<Point> legalMoves = new ArrayList<>();
         Point temp;
         switch (chessPiece.piece) {
@@ -80,6 +57,14 @@ public class ChessMove {
                             legalMoves.add(temp);
                         }
                     }
+                    if (enPassantPawn != null) {
+                        if (moveTopRight(enPassantPawn).equals(pos)) {
+                            legalMoves.add(moveTopLeft(pos));
+                        }
+                        if (moveTopLeft(enPassantPawn).equals(pos)) {
+                            legalMoves.add(moveTopRight(pos));
+                        }
+                    }
                 }
                 if (chessPiece.color == ChessColor.BLACK) {
                     temp = moveBackward(pos);
@@ -103,6 +88,14 @@ public class ChessMove {
                     if (isInGrid(temp)) {
                         if (grid.get(temp.x)[temp.y] != null && grid.get(temp.x)[temp.y].color != chessPiece.color) {
                             legalMoves.add(temp);
+                        }
+                    }
+                    if (enPassantPawn != null) {
+                        if (moveBottomRight(enPassantPawn).equals(pos)) {
+                            legalMoves.add(moveBottomLeft(pos));
+                        }
+                        if (moveBottomLeft(enPassantPawn).equals(pos)) {
+                            legalMoves.add(moveBottomRight(pos));
                         }
                     }
                 }
@@ -353,13 +346,30 @@ public class ChessMove {
                 temp = moveBottomLeft(moveBackward(pos));
                 addLegal(legalMoves, chessPiece, temp, grid);
                 break;
-            default:
-                return null;
         }
         return legalMoves;
     }
 
-    void draw(Graphics2D g, ChessPiece chessPiece) {
+    private static boolean isInGrid(Point pos) {
+        if (pos.x < 11 && pos.x >= 0 && pos.y >= 0) {
+            return pos.y < Board.sizes[pos.x];
+        }
+        return false;
+    }
 
+    private static void addLegal(ArrayList<Point> legalMoves, ChessPiece chessPiece, Point temp, ArrayList<ChessPiece[]> grid) {
+        if (isInGrid(temp)) {
+            addAttacking(legalMoves, chessPiece, temp, grid);
+        }
+    }
+
+    private static void addAttacking(ArrayList<Point> legalMoves, ChessPiece chessPiece, Point temp, ArrayList<ChessPiece[]> grid) {
+        if (grid.get(temp.x)[temp.y] != null) {
+            if (grid.get(temp.x)[temp.y].color != chessPiece.color) {
+                legalMoves.add(temp);
+            }
+        } else {
+            legalMoves.add(temp);
+        }
     }
 }

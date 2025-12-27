@@ -3,6 +3,8 @@ package org.wayl3s;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -11,7 +13,7 @@ import java.util.Arrays;
 import javax.swing.JComponent;
 import javax.swing.Timer;
 
-public class Board extends JComponent implements ActionListener, MouseListener {
+public class Board extends JComponent implements ActionListener, MouseListener, KeyListener {
     // WINDOW PARAMETERS
     private int minWidth = 200;
     private int minHeight = 200;
@@ -21,12 +23,14 @@ public class Board extends JComponent implements ActionListener, MouseListener {
     private double boxWidth = SCALE * Math.min(prefWidth, prefHeight);
     private Timer timer;
 
-    // GAME STATE
+    // GAME STATUS
     private ArrayList<ChessPiece[]> grid = new ArrayList<ChessPiece[]>();
+    private ArrayList<Point> legalMoves = new ArrayList<>();
     private ChessColor turn = ChessColor.WHITE;
     private Point selectedPiece = null;
+    private Point enPassantPawn = null;
     private boolean isSelected = false;
-    private ArrayList<Point> legalMoves = new ArrayList<>();
+    private boolean gameEnded = false;
 
     // FINAL VARIABLES
     public static final int[] sizes = {6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6};
@@ -45,6 +49,7 @@ public class Board extends JComponent implements ActionListener, MouseListener {
         timer = new Timer(timerDelay, this);
         timer.start();
 
+        addKeyListener(this);
         addMouseListener(this);
 
         this.start();
@@ -67,9 +72,13 @@ public class Board extends JComponent implements ActionListener, MouseListener {
     }
 
     public void start() {
-        this.turn = ChessColor.WHITE;
-        
         grid.clear();
+        legalMoves = new ArrayList<>();
+        turn = ChessColor.WHITE;
+        gameEnded = false;
+        selectedPiece = null;
+        enPassantPawn = null;
+        gameEnded = false;
 
         for (int i = 0; i < 11; i++) {
             grid.add(new ChessPiece[sizes[i]]);
@@ -119,7 +128,7 @@ public class Board extends JComponent implements ActionListener, MouseListener {
         super.paintComponent(gr);
 
         Graphics2D g = (Graphics2D) gr;
-        // g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         int height = getHeight();
         int width = getWidth();
@@ -128,19 +137,12 @@ public class Board extends JComponent implements ActionListener, MouseListener {
         Polygon polygon;
         for (int i = 0; i < 11; i++) {
             for (int j = 0; j < sizes[i]; j++) {
-                double polygonX = (double) ((double) width / 2 
-                    - boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i + i / 6 - j) / 5
-                    + boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i - 4) / 5 * (int) (i / 6)
-                );
-                double polygonY = (double) ((double) height / 2
-                    - Math.min(width, height) / 2
-                    + ((1 - SCALE) * Math.min(height, width) / 2) 
-                    + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i + i / 6 + j) / 5
-                    + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i - 6) / 5 * (int) (i / 6)
-                );
-                polygon = buildCellPolygon(boxWidth / (10 * Math.sin(Math.PI * 60 / 180)), polygonX, polygonY);
+                Point point = new Point(i, j);
+                double centerX = getXOnScreen(point);
+                double centerY = getYOnScreen(point);
+                polygon = buildCellPolygon(boxWidth / (10 * Math.sin(Math.PI * 60 / 180)), centerX, centerY);
 
-                if ((isSelected && i == selectedPiece.x && j == selectedPiece.y) || legalMoves.contains(new Point(i, j))) {
+                if ((isSelected && i == selectedPiece.x && j == selectedPiece.y) || legalMoves.contains(point)) {
                     g.setColor(new Color(230, 250, 0));
                     g.fillPolygon(polygon);
                 } else if ((i + i/6 * (i + 1) + j) % 3 == 0) {
@@ -153,25 +155,28 @@ public class Board extends JComponent implements ActionListener, MouseListener {
                     g.setColor(new Color(255, 207, 159));
                     g.fillPolygon(polygon);
                 }
-
-                // if (legalPoints.contains(new Point(i, j))) {
-                //     g.setColor(Color.BLACK);
-                //     g.fillOval((int) (polygonX - boxWidth/120), (int) (polygonY - boxWidth/120), (int) boxWidth/60, (int) boxWidth/60);
-                // }
                 
                 if (grid.get(i)[j] != null) {
-                    if (grid.get(i)[j].color == ChessColor.WHITE){
-                        g.setColor(Color.WHITE);
-                    } else {
-                        g.setColor(Color.BLACK);
-                    }
-                    g.fillRect((int) polygonX, (int) polygonY, 5, 5);
+                    ChessPiece.draw(g, grid.get(i)[j], centerX, centerY, boxWidth/10);
                 }
 
                 g.setColor(Color.BLACK);
                 g.drawPolygon(polygon);
             }
         }
+    }
+
+    private double getXOnScreen(Point pos) {
+        return (double) (getWidth() - boxWidth  * Math.sin(Math.PI * 60 / 180) * (pos.x - pos.y - (pos.x - 5) * (int) (pos.x / 6)) / 5) / 2;
+    }
+
+    
+
+    private double getYOnScreen(Point pos) {
+        return (double) (getHeight()
+            - Math.min(getWidth(), getHeight())
+            + (1 - SCALE) * Math.min(getWidth(), getHeight())
+            + boxWidth * Math.cos(Math.PI * 60 / 180) * (pos.x + pos.y + (pos.x - 5) * (int) (pos.x / 6)) / 5) / 2;
     }
 
     private Polygon buildCellPolygon(double height, double centerX, double centerY) {
@@ -190,17 +195,8 @@ public class Board extends JComponent implements ActionListener, MouseListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == timer) {
-            if (this.getParent() != null) {
-                Container parent = getParent();
-                setSize(parent.getWidth() - 20, parent.getHeight() - 20);
-                revalidate();
-            }
             repaint();
         }
-    }
-
-    public void getSelectedPiece(int x, int y) {
-
     }
 
     @Override
@@ -215,35 +211,64 @@ public class Board extends JComponent implements ActionListener, MouseListener {
     @Override
     public void mousePressed(MouseEvent e) {
         if (e.getButton() == MouseEvent.BUTTON1) {
+            if (gameEnded) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+                start();
+                return;
+            }
             int height = getHeight();
             int width = getWidth();
             boolean pressed = false;
             boxWidth = SCALE * Math.min(height, width);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < sizes[i]; j++) {
+                    Point point = new Point(i, j);
                     double distance = Point.distance(
                         e.getX(),
                         e.getY(),
-                        (double) ((double) width / 2 
-                        - boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i + i / 6 - j) / 5
-                        + boxWidth / 2 * Math.sin(Math.PI * 60 / 180) * (i - 4) / 5 * (int) (i / 6)),
-                        (double) ((double) height / 2
-                        - Math.min(width, height) / 2
-                        + ((1 - SCALE) * Math.min(height, width) / 2) 
-                        + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i + i / 6 + j) / 5
-                        + boxWidth / 2 * Math.cos(Math.PI * 60 / 180) * (i - 6) / 5 * (int) (i / 6))
+                        getXOnScreen(point),
+                        getYOnScreen(point)
                     );
                     if (distance < boxWidth / 20) {
-                        if (legalMoves.contains(new Point(i, j))) {
+                        if (legalMoves.contains(point)) {
+                            if (grid.get(i)[j] != null) {
+                                if (grid.get(i)[j].piece == ChessPieces.KING) {
+                                    gameEnded = true;
+                                }
+                            }
+
                             grid.get(i)[j] = grid.get(selectedPiece.x)[selectedPiece.y];
+                            if (grid.get(selectedPiece.x)[selectedPiece.y].piece == ChessPieces.PAWN) {
+                                if (grid.get(selectedPiece.x)[selectedPiece.y].color == ChessColor.WHITE && ChessMove.moveBackward(point).equals(enPassantPawn)) {
+                                    grid.get(enPassantPawn.x)[enPassantPawn.y] = null;
+                                } else if (grid.get(selectedPiece.x)[selectedPiece.y].color == ChessColor.BLACK && ChessMove.moveForward(point).equals(enPassantPawn)) {
+                                    grid.get(enPassantPawn.x)[enPassantPawn.y] = null;
+                                }
+                            }
                             grid.get(selectedPiece.x)[selectedPiece.y] = null;
+
+                            if (grid.get(i)[j].piece == ChessPieces.PAWN && grid.get(i)[j].color == ChessColor.WHITE) {
+                                if (ChessMove.moveForward(ChessMove.moveForward(selectedPiece)).equals(point)) {
+                                    enPassantPawn = point;
+                                }
+                            } else if (grid.get(i)[j].piece == ChessPieces.PAWN && grid.get(i)[j].color == ChessColor.BLACK) {
+                                if (ChessMove.moveBackward(ChessMove.moveBackward(selectedPiece)).equals(point)) {
+                                    enPassantPawn = point;
+                                }
+                            } else {
+                                enPassantPawn = null;
+                            }
+                            
                             turn = turn == ChessColor.WHITE ? ChessColor.BLACK : ChessColor.WHITE;
                         } else if (grid.get(i)[j] != null && grid.get(i)[j].color == turn) {
-                            selectedPiece = new Point(i, j);
+                            selectedPiece = point;
                             pressed = true;
                             isSelected = true;
-                            legalMoves = ChessMove.getLegalMoves(selectedPiece, grid.get(i)[j], grid);
-                            // legalPoints = ChessMove.getLegalMoves(selectedPiece, ChessPieces.ROOK, ChessColor.WHITE, grid);
+                            legalMoves = ChessMove.getLegalMoves(selectedPiece, grid.get(i)[j], grid, enPassantPawn);
                         }
                     }
                 }
@@ -257,4 +282,18 @@ public class Board extends JComponent implements ActionListener, MouseListener {
 
     @Override
     public void mouseReleased(MouseEvent e) {}
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        System.out.println(e.getKeyCode());
+        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+            start();
+        }
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {}
+
+    @Override
+    public void keyTyped(KeyEvent e) {}
 }
