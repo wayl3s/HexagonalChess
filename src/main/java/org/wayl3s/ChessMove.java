@@ -40,8 +40,10 @@ public class ChessMove {
                         if (grid.get(temp.x)[temp.y] == null) {
                             legalMoves.add(temp);
                             temp = moveForward(temp);
-                            if (grid.get(temp.x)[temp.y] == null && Board.whitePawnStartPositions.contains(pos)) {
-                                legalMoves.add(temp);
+                            if (isInGrid(temp)) {
+                                if (grid.get(temp.x)[temp.y] == null && Board.whitePawnStartPositions.contains(pos)) {
+                                    legalMoves.add(temp);
+                                }
                             }
                         }
                     }
@@ -68,14 +70,15 @@ public class ChessMove {
                 }
                 if (chessPiece.color == ChessColor.BLACK) {
                     temp = moveBackward(pos);
-                    if (!isInGrid(temp)) {
-                        return legalMoves;
-                    }
-                    if (grid.get(temp.x)[temp.y] == null) {
-                        legalMoves.add(temp);
-                        temp = moveBackward(temp);
-                        if (grid.get(temp.x)[temp.y] == null && Board.blackPawnStartPositions.contains(pos)) {
+                    if (isInGrid(temp)) {
+                        if (grid.get(temp.x)[temp.y] == null) {
                             legalMoves.add(temp);
+                            temp = moveBackward(temp);
+                            if (isInGrid(temp)) {
+                                    if (grid.get(temp.x)[temp.y] == null && Board.blackPawnStartPositions.contains(pos)) {
+                                        legalMoves.add(temp);
+                                    }
+                                }
                         }
                     }
                     temp = moveBottomLeft(pos);

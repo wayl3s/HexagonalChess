@@ -50,6 +50,8 @@ public class Board extends JComponent implements ActionListener, MouseListener, 
         timer.start();
 
         addKeyListener(this);
+        setFocusable(true);
+        requestFocusInWindow();
         addMouseListener(this);
 
         this.start();
@@ -285,8 +287,7 @@ public class Board extends JComponent implements ActionListener, MouseListener, 
 
     @Override
     public void keyPressed(KeyEvent e) {
-        System.out.println(e.getKeyCode());
-        if (e.getKeyCode() == KeyEvent.VK_RIGHT) {
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
             start();
         }
     }

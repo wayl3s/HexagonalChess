@@ -7,12 +7,12 @@ public class MainWindow extends JFrame {
     private Board board;
 
     public MainWindow() throws HeadlessException {
+        this.setTitle("HexogonalChess -- ESC to reset");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setPreferredSize(new Dimension(600, 600));
         // this.setResizable(false);
-        this.setLayout(new GridBagLayout());
 
-        board = new Board(100);
+        this.setPreferredSize(new Dimension(600, 600));
+        this.setLayout(new GridBagLayout());
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -22,6 +22,8 @@ public class MainWindow extends JFrame {
         gbc.fill = GridBagConstraints.BOTH;
         gbc.insets = new Insets(10, 10, 10, 10);
 
+        board = new Board(100);
+        
         this.add(board, gbc);
         this.pack();
         // this.setLocationRelativeTo(null);
